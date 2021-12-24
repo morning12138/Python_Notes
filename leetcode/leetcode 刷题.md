@@ -573,3 +573,740 @@ class Solution:
             
 ```
 
+
+
+### 两数之和
+
+1. 暴力解法	
+   * 简单但有效
+
+```python
+class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        for i, num1 in enumerate(nums):
+            for j, num2 in enumerate(nums[i+1:]):
+                if num1 + num2 == target:
+                    return [i,  i+j+1]
+
+```
+
+2. 使用字典，理由：
+
+   * 需要保存数和下表，key value
+   * 字典的查询效率最差也是O(logn)
+   * 使用值作为索引，index就变成value了
+   * 如果已经有满足和的那么直接返回即可。
+
+   ```python
+   class Solution:
+       def twoSum(self, nums: List[int], target: int) -> List[int]:
+           new_dict = dict()
+   
+           for index, num in enumerate(nums):
+               if target - num not in new_dict:
+                   new_dict[num] = index
+               else:
+                   return [new_dict[target-num], index]
+   ```
+
+3. 双指针
+
+   * 对于双重循环可以尝试
+   * 先排序时间复杂度O（nlogn）
+   * 先画图推导，一边从最小的出发，一边从最大的出发，逐渐往中间靠拢。
+
+   ```python
+   class Solution:
+       def twoSum(self, nums: List[int], target: int) -> List[int]:
+           nums_s = sorted(nums)
+           left = 0
+           right = len(nums) - 1 
+           ans_num = [-1, -1]
+           stop_right = False
+           while left < right:
+               if nums_s[left] + nums_s[right] == target:
+                   ans_num[0] = nums_s[left]
+                   ans_num[1] = nums_s[right]
+                   break
+               elif nums_s[left] + nums_s[right] > target:
+                   right -= 1
+               else:
+                   left += 1
+           
+           return_value = [0, 0]
+           flag1 = True
+           flag2 = True
+           # print(ans_num)
+           for i, value in enumerate(nums):
+               if value == ans_num[0] and flag1:
+                   # print(value, ans_num[0])
+                   return_value[0] = i
+                   flag1 = False
+                   continue
+               if value == ans_num[1] and flag2:
+                   # print(value, ans_num[1])
+                   return_value[1] = i
+                   flag2 = False
+               
+               if flag2 == False and flag1 == False:
+                   break
+           return return_value
+   ```
+
+   
+
+###  四数相加II
+
+* hash map
+
+* 通过hash的**key来保存值**， value根据需要去保存，比如保存有多少个这个key的数字
+
+* 先判断前两个之和，保存该和有多少个
+
+* 后两个求和的相反数和已经保存的key一样，则加上这个key对应的value则是可以生成的组数
+
+* ```python
+  class Solution:
+      def fourSumCount(self, nums1: List[int], nums2: List[int], nums3: List[int], nums4: List[int]) -> int:
+          map_1 = dict()
+          count = 0
+          for a in nums1:
+              for b in nums2:
+                  if a + b in map_1:
+                      map_1[a+b] += 1
+                  else:
+                      map_1[a+b] = 1
+          
+          for c in nums3:
+              for d in nums4:
+                  key = (-c-d)
+                  if key in map_1:
+                      count += map_1[key]
+  
+          return count             
+  ```
+
+  
+
+### 赎金信
+
+* 简单的hash
+
+* 使用key保存字符，value保存出现的次数
+
+* ```python
+  class Solution:
+      def canConstruct(self, ransomNote: str, magazine: str) -> bool:
+          map_1 = dict()
+          for i, c in enumerate(ransomNote):
+              if c not in map_1:
+                  map_1[c] = 1
+              else:
+                  map_1[c] += 1
+          
+          for i, c in enumerate(magazine):
+              if (c in map_1) and (map_1[c] != 0):
+                  map_1[c] -= 1
+          
+          for i, c in enumerate(ransomNote):
+              if map_1[c] != 0:
+                  return False
+          
+          return True
+  ```
+
+
+
+
+
+### 三数之和
+
+* 可以把问题转换成两数字之和为另一个数的相反数的问题
+* 双指针
+* 难点在于重复去除
+  * 输出的数组不能有重复的
+    * 因此遇到重复的数组需要跳过，左边相等与右边相等都需要判断
+    * 两边都不想等的时候，肯定是左右都要变的，不然不可能会继续保持0
+
+```python
+class Solution:
+    def threeSum(self, nums: List[int]) -> List[List[int]]:
+        # 双指针法, 先选择一个数，然后就变成了双数之和
+        return_list = []
+        # nums = list(set(m))
+        nums = sorted(nums)
+        for i in range(0, len(nums)):
+            target = (-nums[i])
+            left, right = i+1, len(nums) - 1
+            if i >= 1 and nums[i] == nums[i - 1]:
+                continue
+            if nums[i] > 0:
+                break
+            while left < right:
+                if nums[left] + nums[right] == target:
+                    return_list.append([-target, nums[left], nums[right]])
+                    while left != right and nums[left] == nums[left + 1]: left += 1
+                    while left != right and nums[right] == nums[right - 1]:right -= 1
+                    left += 1
+                    right -= 1
+                elif nums[left] + nums[right] > target:
+                    right -= 1
+                else:
+                    left += 1
+
+        
+        return return_list
+
+```
+
+
+
+### 四数之和
+
+* 和三数之和类似
+* 现在几数之和都会了
+* 判断边界，就是如果这个和上一个相等，那么就continue
+  * 因为如果相等，那么想要成为同一个target的值也是一样的，但是范围变小了，所以肯定是子集
+
+```python
+class Solution:
+    def fourSum(self, nums: List[int], target: int) -> List[List[int]]:
+        nums = sorted(nums)
+        return_list = []
+        for i in range(0, len(nums)):
+            if i>0 and nums[i] == nums[i-1]: continue
+            for j in range(i + 1, len(nums)):
+                left, right = j + 1, len(nums) - 1
+                if j > i + 1 and nums[j] == nums[j-1]:continue
+                if left >= len(nums) - 1:
+                    break
+                while left < right:
+                    total = nums[i] + nums[j] + nums[left] + nums[right]
+                    if total > target:
+                        right -= 1
+                    elif total < target:
+                        left += 1
+                    else:
+                        return_list.append([nums[i], nums[j], nums[left], nums[right]])
+                        while left != right and nums[left] == nums[left + 1] : left = left + 1
+                        while left != right and nums[right] == nums[right - 1] : right = right - 1
+                        left += 1
+                        right -= 1
+            
+        return return_list
+
+```
+
+
+
+### 实现strStr()
+
+* KMP
+
+* 两个部分，一个求next数组，一个利用next数组进行匹配
+
+  * ```python
+    
+    def getNext(self, str_):
+            j = -1
+            next_arr = [-1]
+            for i in range(1, len(str_)):
+                while j >= 0 and str_[i] != str_[j+1]:
+                    j = next_arr[j]
+                if str_[i] == str_[j+1]:
+                    j += 1
+                next_arr.append(j)
+            return next_arr
+    ```
+
+  * ```python
+    def strStr(self, haystack: str, needle: str) -> int:
+            if needle == '':
+                return 0
+            next_arr = self.getNext(needle)
+            print(next_arr)
+            j = -1
+            for i in range(0, len(haystack)):
+                while( j >= 0 and haystack[i] != needle[j+1]):
+                    j = next_arr[j]
+                if haystack[i] == needle[j+1]:
+                    j += 1
+                if j == (len(needle) - 1):
+                    return (i - len(needle) + 1)
+            return - 1
+    ```
+
+    
+
+### 重复的子字符串
+
+看看自己的提交记录吧
+
+* kmp的思路，利用kmp的最大前后缀数组，用最后一位的值可以被整除来实现
+* 利用(s+s).find(s, 1) != len(s)， 如果是循环的，那么找到s则必然不需要在第二个s的地方找到
+
+
+
+### python 中的栈和队列
+
+* 栈
+
+  * 直接使用list即可
+
+  * 常见的函数:
+
+  * ```python
+    stack = list()
+    stack.append(x)
+    stack.pop(x)
+    stack.empty()
+    
+    ```
+
+* 队列
+
+  * import queue
+
+  * ```python
+    import queue
+    q = queue.Queue()
+    q.put(x)
+    q.get(x)
+    q.empty()
+    ```
+
+    
+
+### 逆波兰表达式
+
+* 使用栈就行
+* 可以使用map来替代switch
+
+```javascript
+/**
+ * @param {string[]} tokens
+ * @return {number}
+ */
+var evalRPN = function(tokens) {
+    const s = new Map([
+        ['+', (a, b) => a*1 + b*1],
+        ['-', (a, b) => b - a],
+        ['*', (a, b) => b * a],
+        ["/", (a, b) => (b/a) | 0]
+    ]);
+    const stack = []
+    for (const i of tokens) {
+        if (!s.has(i)) {
+            stack.push(i)
+            continue;
+        }
+        stack.push(s.get(i)(stack.pop(), stack.pop()))
+    }
+    return stack.pop()
+};
+```
+
+
+
+### 滑动窗口最大值
+
+* 使用队列
+* 需要满足每次获得队头元素都是最大值
+* push修改，如果队列入口的值小于要push的值，那么要弹出这个值，直到遇到大于或者空为止。
+
+```javascript
+/**
+ * @param {number[]} nums
+ * @param {number} k
+ * @return {number[]}
+ */
+var maxSlidingWindow = function(nums, k) {
+    // 保存的是下标
+    const q = [];
+    const ans = [];
+    for (let i = 0; i<nums.length; i++) {
+        // 如果队列入口的值小于要push的值，那么就弹出，直到大于为止
+        while (q.length && nums[i] >= nums[q[q.length - 1]]) {
+            q.pop();
+        }
+        q.push(i);
+        // 判断当前的最大值是否在窗口中，不在则出队
+        if (q[0] < i-k+1) {
+            q.shift();
+        }
+        // 起码到达了窗口长度开始添加答案
+        if (i>=k-1) ans.push(nums[q[0]]);
+    }
+    return ans
+};
+```
+
+
+
+### [ 前 K 个高频元素](https://leetcode-cn.com/problems/top-k-frequent-elements/)
+
+* 统计：使用map
+
+* 排序：优先级队列
+
+* ```javascript
+  function QueueElement(element, priority) {
+      this.element = element;
+      this.priority = priority;
+  }
+  
+  function PriorityQueue() {
+      this.items = [];
+  }
+  
+  PriorityQueue.prototype.enQueue = function(element, priority) {
+      let queueElement = new QueueElement(element, priority);
+      if (this.items.length == 0) {
+          this.items.push(queueElement)
+      } else {
+          let flag = false;
+          for(let i = 0; i<this.items.length; i++) {
+              if(queueElement.priority > this.items[i].priority) {
+                  this.items.splice(i, 0, queueElement);
+                  flag = true;
+                  break;
+              }
+          }
+          if (!flag) {
+              this.items.push(queueElement);
+          }
+      }
+  }
+  
+  PriorityQueue.prototype.pop = function() {
+      return this.items.shift();
+  }
+  
+  PriorityQueue.prototype.front = function() {
+      return this.items[0];
+  }
+  
+  ```
+
+  
+
+* 输出
+
+```javascript
+/**
+ * @param {number[]} nums
+ * @param {number} k
+ * @return {number[]}
+ */
+
+function QueueElement(element, priority) {
+    this.element = element;
+    this.priority = priority;
+}
+
+function PriorityQueue() {
+    this.items = [];
+}
+
+PriorityQueue.prototype.enQueue = function(element, priority) {
+    let queueElement = new QueueElement(element, priority);
+    if (this.items.length == 0) {
+        this.items.push(queueElement)
+    } else {
+        let flag = false;
+        for(let i = 0; i<this.items.length; i++) {
+            if(queueElement.priority > this.items[i].priority) {
+                this.items.splice(i, 0, queueElement);
+                flag = true;
+                break;
+            }
+        }
+        if (!flag) {
+            this.items.push(queueElement);
+        }
+    }
+}
+
+PriorityQueue.prototype.pop = function() {
+    return this.items.shift();
+}
+
+PriorityQueue.prototype.front = function() {
+    return this.items[0];
+}
+
+var topKFrequent = function(nums, k) {
+    let count_map = new Map();
+    let pri_queue = new PriorityQueue();
+    let ans = [];
+    for(let i in nums) {
+        if(count_map.has(nums[i])) {
+            let tmp = count_map.get(nums[i]);
+            count_map.set(nums[i], tmp + 1)
+        } else {
+            count_map.set(nums[i], 1)
+        }
+    }
+
+    for (let [key, value] of count_map) {
+        pri_queue.enQueue(key, value);
+    }
+
+    for(let i = 0; i<k; i++) {
+        ans.push(pri_queue.pop().element)
+    }
+
+    return ans;
+};
+```
+
+
+
+### 二叉树的遍历
+
+* 迭代遍历
+
+* 分为前序后序和中序两种
+
+* ```javascript
+  // 前序
+  /**
+   * Definition for a binary tree node.
+   * function TreeNode(val, left, right) {
+   *     this.val = (val===undefined ? 0 : val)
+   *     this.left = (left===undefined ? null : left)
+   *     this.right = (right===undefined ? null : right)
+   * }
+   */
+  /**
+   * @param {TreeNode} root
+   * @return {number[]}
+   */
+  
+  // 使用栈，然后先进right子树，因为栈是先进后出，然后进left子树
+  
+  var preorderTraversal = function(root, res = []) {
+      if(!root) {
+          return res;
+      }
+      const stack = [root];
+      let cur = null;
+      while(stack.length) {
+          cur = stack.pop();
+          res.push(cur.val);
+          if (cur.right) {
+              stack.push(cur.right);
+          }
+          if(cur.left) {
+              stack.push(cur.left);
+          }
+      }
+      return res;
+  };
+  
+  // 后序
+  // 和前序一样，区别就是添加了最后的翻转，因为 中右左 翻转就是 左右中 
+  var postorderTraversal = function(root, ans = []) {
+      if (!root) return ans;
+      const stack = [root];
+      let cur = null;
+      while(stack.length) {
+          cur = stack.pop();
+          ans.push(cur.val);
+          if (cur.left) {
+              stack.push(cur.left);
+          }
+          if(cur.right) {
+              stack.push(cur.right);
+          }
+      }
+      return ans.reverse();
+  };
+  
+  // 中序
+  // 不一样，使用一个指针一直盯着，到不能继续下去才开始输出
+  var mid = function(root, ans = []) {
+      const stack = [];
+      let cur = root;
+      while(cur != null || stack.length) {
+          if (cur != null) {
+              stack.push(cur);
+              cur = cur.left;
+          } else {
+              cur = stack.pop();
+              ans.push(cur.val);
+              cur = cur.right;
+          }
+      }
+  }
+  
+  var inorderTraversal = function(root) {
+      let ans = [];
+      mid(root, ans);
+      return ans;
+  };
+  ```
+
+
+
+* 递归，非常容易，直接写就行了
+
+* ```javascript
+  
+  // 中序
+  var mid = function(root, ans = []) {
+      if (!root) {
+          return;
+      }
+      mid(root.left, ans);
+      ans.push(root.val);
+      mid(root.right, ans);
+  }
+  
+  var inorderTraversal = function(root) {
+      let ans = [];
+      mid(root, ans);
+      return ans;
+  };
+  
+  // 后序
+  var back = function(root = new TreeNode(), ans = []) {
+      if (!root) {
+          return
+      }
+      back(root.left, ans);
+      back(root.right, ans);
+      ans.push(root.val);
+  
+  }
+  
+  var postorderTraversal = function(root) {
+      let ans = []
+      back(root, ans);
+      return ans;
+  };
+  
+  // 前序
+  var front = function(root, ans = []) {
+      if (!root ) {
+          return
+      }
+      ans.push(root.val);
+      front(root.left, ans);
+      front(root.right, ans);
+  
+  }
+  
+  var preorderTraversal = function(root) {
+      let ans = [];
+      front(root, ans);
+      return ans;
+  };
+  ```
+
+
+
+* **层级遍历**
+
+* ```javascript
+  /**
+   * Definition for a binary tree node.
+   * function TreeNode(val, left, right) {
+   *     this.val = (val===undefined ? 0 : val)
+   *     this.left = (left===undefined ? null : left)
+   *     this.right = (right===undefined ? null : right)
+   * }
+   */
+  /**
+   * @param {TreeNode} root
+   * @return {number[][]}
+   */
+  var levelOrder = function(root) {
+      let res = [], queue = [root];
+      if (!root) return res;
+      while(queue.length) {
+          // 记录当前层级节点数
+          let len_of_the_level = queue.length;
+          //存放每一层的节点 
+          let level_nodes = [];
+          for(let i=0;i<len_of_the_level;i++) {
+              let node = queue.shift();
+              level_nodes.push(node.val);
+              // 存放当前层下一层的节点
+              node.left && queue.push(node.left);
+              node.right && queue.push(node.right);
+          }
+          //把每一层的结果放到结果数组
+          res.push(level_nodes);
+      }
+      return res;
+  };
+  ```
+
+  
+
+
+
+### 回溯法
+
+```
+void backtracking(参数) {
+    if (终止条件) {
+        存放结果;
+        return;
+    }
+
+    for (选择：本层集合中元素（树中节点孩子的数量就是集合的大小）) {
+        处理节点;
+        backtracking(路径，选择列表); // 递归
+        回溯，撤销处理结果
+    }
+}
+
+```
+
+
+
+### 组合
+
+典型的回溯问题
+
+* 每一层迭代等于一个循环，因为无法手动写出那么多的循环
+* 对于每一次迭代使用for循环遍历这一层
+* 终止条件就是path数组里面的长度和目标一致。
+* 使用展开运算符，**否则最终ret中的每一个数组都是指向一个地址**，所以会全是空
+
+可以剪枝
+
+* 通过n - i + 1 > k - len(path)可以剪枝 
+
+```js
+/**
+ * @param {number} n
+ * @param {number} k
+ * @return {number[][]}
+ */
+let ret = [];
+let path = [];
+
+let back = function(n, k, startIndex) {
+    if (path.length == k) {
+        ret.push([...path]);
+        return;
+    }
+    let tmp_len = path.length
+    for (let i=startIndex; i<=n-k+tmp_len+1; i++) {
+        path.push(i);
+        back(n, k, i+1);
+        path.pop();
+    }
+}
+
+var combine = function(n, k) {
+    ret = [];
+    back(n, k, 1);
+    return ret;
+};
+
+```
+
